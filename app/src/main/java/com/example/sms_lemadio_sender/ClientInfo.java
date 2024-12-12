@@ -4,6 +4,7 @@ public class ClientInfo {
     String name;
     String phoneNumber;
     String invoiceNumber;
+    String stove;
     String consultation;
     boolean smsSent;
 }

@@ -39,7 +39,6 @@ public class MainActivity extends AppCompatActivity {
     public static final String TAG = "SMS_SENDER";
     private static final String API_URL = "http://10.85.5.165:8000/api/get_client_sales_info/";
     public List<ClientInfo> clientList = new ArrayList<>();
-    private int currentClientIndex = 0;
     private Handler periodicUpdateHandler;
     private static final long UPDATE_INTERVAL = 5000;
 
@@ -119,28 +118,25 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        /*String message = String.format(
-                "Bonjour %s!, votre réchaud %s acheté chez ADES. Garantie : %s",
-                currentClient.name,
-                currentClient.invoiceNumber,
-                "https://ades.mg/" + currentClient.consultation
-        );*/
-
         String message = String.format(
-                "Bonjour %s!, votre réchaud %s acheté chez ADES. Garantie : %s", currentClient.name, currentClient.invoiceNumber, currentClient.consultation
+                "Bonjour %s! Nous vous remercions pour votre achat chez ADES. Vous avez acquis un réchaud modèle %s. Votre numéro de facture est : %s. Pour consulter les détails de votre garantie, veuillez cliquer sur ce lien : %s. Nous vous remercions pour votre confiance!",
+                currentClient.name,
+                currentClient.stove,
+                currentClient.invoiceNumber,
+                "http://ades.mg/" + currentClient.consultation
         );
 
         envoyerSMSMultiMethode(numero, message);
         currentClient.smsSent = true;
-        updateSMSSentStatus(currentClient.invoiceNumber);
+        updateSMSSentStatus(currentClient.stove);
     }
 
-    private void updateSMSSentStatus(String invoiceNumber) {
+    private void updateSMSSentStatus(String stove) {
         RequestQueue queue = Volley.newRequestQueue(this);
 
         JSONObject payload = new JSONObject();
         try {
-            payload.put("invoice_number", invoiceNumber);
+            payload.put("stove", stove);
         } catch (JSONException e) {
             Log.e(TAG, "Erreur JSON", e);
             return;
@@ -155,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         String status = response.getString("status");
                         if ("success".equals(status)) {
-                            Log.d(TAG, "Statut SMS mis à jour pour " + invoiceNumber);
+                            Log.d(TAG, "Statut SMS mis à jour pour " + stove);
                         } else {
                             Log.e(TAG, "Échec mise à jour statut SMS: " + response.toString());
                         }
@@ -171,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Set a longer timeout and retry policy
         jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(
-                20000,  // 20 seconds timeout
+                10000,  // 20 seconds timeout
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 

@@ -71,6 +71,7 @@ public class FetchClientsTask extends AsyncTask<Void, Void, List<ClientInfo>> {
                         client.name = clientJson.getString("client_name");
                         client.phoneNumber = clientJson.getString("client_phone");
                         client.invoiceNumber = clientJson.getString("invoice_number");
+                        client.stove = clientJson.getString("stove");
                         client.consultation = clientJson.getString("consultation_url");
                         client.smsSent = false;
 
@@ -111,9 +112,7 @@ public class FetchClientsTask extends AsyncTask<Void, Void, List<ClientInfo>> {
                 }
             }
         } else {
-            Toast.makeText(context,
-                    "Aucun nouveau client trouvé",
-                    Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Aucun nouveau client trouvé");
         }
     }
 }
