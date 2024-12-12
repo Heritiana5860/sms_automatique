@@ -10,9 +10,9 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
@@ -23,28 +23,25 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import org.json.JSONArray;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "SMS_SENDER";
+    public static final String TAG = "SMS_SENDER";
     private static final String API_URL = "http://10.85.5.165:8000/api/get_client_sales_info/";
-    private List<ClientInfo> clientList = new ArrayList<>();
+    public List<ClientInfo> clientList = new ArrayList<>();
     private int currentClientIndex = 0;
-
-    private static class ClientInfo {
-        String name;
-        String phoneNumber;
-        String invoiceNumber;
-        boolean smsSent = false;
-    }
+    private Handler periodicUpdateHandler;
+    private static final long UPDATE_INTERVAL = 5000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,8 +51,25 @@ public class MainActivity extends AppCompatActivity {
 
         // Vérifier les permissions avant de commencer
         if (checkSMSPermission()) {
-            new FetchClientsTask().execute();
+            startPeriodicUpdates();
         }
+    }
+
+    private void startPeriodicUpdates() {
+        periodicUpdateHandler = new Handler(Looper.getMainLooper());
+        periodicUpdateHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                // Récupérer les nouvelles données à chaque intervalle
+                if (verifierConditionsEnvoi()) {
+                    FetchClientsTask task = new FetchClientsTask(MainActivity.this);
+                    task.execute();
+                }
+
+                // Reprogrammer la prochaine mise à jour
+                periodicUpdateHandler.postDelayed(this, UPDATE_INTERVAL*2);
+            }
+        });
     }
 
     private boolean checkSMSPermission() {
@@ -75,134 +89,96 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 123 && grantResults.length > 0
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            new FetchClientsTask().execute();
+            new FetchClientsTask(this).execute();
         }
     }
 
-    private class FetchClientsTask extends AsyncTask<Void, Void, String> {
-        @Override
-        protected String doInBackground(Void... voids) {
-            try {
-                URL url = new URL(API_URL);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setConnectTimeout(10000);
-                connection.setReadTimeout(10000);
-
-                // Vérifier le code de réponse HTTP
-                int responseCode = connection.getResponseCode();
-                Log.d(TAG, "Response Code: " + responseCode);
-
-                // Lire la réponse
-                BufferedReader reader;
-                if (responseCode >= 200 && responseCode <= 299) {
-                    reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                } else {
-                    reader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
-                }
-
-                StringBuilder response = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    response.append(line);
-                }
-                reader.close();
-
-                // Log de la réponse complète
-                Log.d(TAG, "Full Response: " + response.toString());
-
-                // Vérifier si la réponse contient des données
-                JSONObject jsonResponse = new JSONObject(response.toString());
-                JSONArray clientsArray = jsonResponse.getJSONArray("data");
-
-                if (clientsArray.length() == 0) {
-                    return "Aucune donnée trouvée";
-                }
-
-                for (int i = 0; i < clientsArray.length(); i++) {
-                    JSONObject clientJson = clientsArray.getJSONObject(i);
-                    ClientInfo client = new ClientInfo();
-
-                    Log.d(TAG, "Client Data: " +
-                            "Name: " + clientJson.getString("name") +
-                            ", Phone: " + clientJson.getString("phone_number") +
-                            ", Invoice: " + clientJson.getString("number_of_Invoice")
-                    );
-
-                    client.name = clientJson.getString("name");
-                    client.phoneNumber = clientJson.getString("phone_number");
-                    client.invoiceNumber = clientJson.getString("number_of_Invoice");
-                    clientList.add(client);
-                }
-
-                return "success";
-            } catch (Exception e) {
-                // Log détaillé de l'erreur
-                Log.e(TAG, "Erreur de récupération des données", e);
-                return "Erreur : " + e.getMessage();
-            }
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            if (result.equals("success")) {
-                if (verifierConditionsEnvoi()) {
-                    sendNextSMS();
-                } else {
-                    Toast.makeText(MainActivity.this,
-                            "Conditions réseau non remplies",
-                            Toast.LENGTH_LONG).show();
-                }
-            } else {
-                Toast.makeText(MainActivity.this,
-                        "Échec : " + result,
-                        Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    private void sendNextSMS() {
-        if (currentClientIndex >= clientList.size()) {
-            Log.d(TAG, "All SMS sending completed");
-            Toast.makeText(this, "Envoi des SMS terminé", Toast.LENGTH_LONG).show();
+    public void sendNextSMS() {
+        if (clientList == null || clientList.isEmpty()) {
+            Log.d(TAG, "Aucun client à traiter");
             return;
         }
 
-        ClientInfo currentClient = clientList.get(currentClientIndex);
-        /*String message = String.format(
-                "Bonjour %s, votre facture numéro %s est prête. Merci de nous contacter.",
-                currentClient.name,
-                currentClient.invoiceNumber
-        );*/
+        // Trouver le premier client non traité
+        ClientInfo currentClient = clientList.stream()
+                .filter(client -> !client.smsSent)
+                .findFirst()
+                .orElse(null);
 
-        Log.d(TAG, "Processing client: " + currentClient.name);
-        Log.d(TAG, "Original phone number: " + currentClient.phoneNumber);
-
-        String message = String.format(
-                "Bonjour %s!, vous aves acheté ce réchaud %s chez ADES.",
-                currentClient.name,
-                currentClient.invoiceNumber
-        );
+        if (currentClient == null) {
+            Log.d(TAG, "Tous les clients ont été traités");
+            return;
+        }
 
         String numero = formaterNumero(currentClient.phoneNumber);
-        Log.d(TAG, "Formatted phone number: " + numero);
 
-        if (validerNumeroMadagascar(numero)) {
-            Log.d(TAG, "Envoi du SMS à: " + numero + " avec message: " + message);
-            envoyerSMSMultiMethode(numero, message);
-            currentClient.smsSent = true;
-            currentClientIndex++;
-
-            // Délai entre les SMS pour éviter la surcharge
-            new Handler().postDelayed(this::sendNextSMS, 5000);
-        } else {
+        if (!validerNumeroMadagascar(numero)) {
             Log.e(TAG, "Numéro invalide : " + numero);
-            currentClientIndex++;
-            sendNextSMS(); // Passer au client suivant
+            currentClient.smsSent = true;
+            updateSMSSentStatus(currentClient.invoiceNumber);
+            return;
         }
+
+        /*String message = String.format(
+                "Bonjour %s!, votre réchaud %s acheté chez ADES. Garantie : %s",
+                currentClient.name,
+                currentClient.invoiceNumber,
+                "https://ades.mg/" + currentClient.consultation
+        );*/
+
+        String message = String.format(
+                "Bonjour %s!, votre réchaud %s acheté chez ADES. Garantie : %s", currentClient.name, currentClient.invoiceNumber, currentClient.consultation
+        );
+
+        envoyerSMSMultiMethode(numero, message);
+        currentClient.smsSent = true;
+        updateSMSSentStatus(currentClient.invoiceNumber);
     }
 
-    private boolean verifierConditionsEnvoi() {
+    private void updateSMSSentStatus(String invoiceNumber) {
+        RequestQueue queue = Volley.newRequestQueue(this);
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("invoice_number", invoiceNumber);
+        } catch (JSONException e) {
+            Log.e(TAG, "Erreur JSON", e);
+            return;
+        }
+
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                Request.Method.POST,
+                API_URL,
+                payload,
+                response -> {
+                    try {
+                        String status = response.getString("status");
+                        if ("success".equals(status)) {
+                            Log.d(TAG, "Statut SMS mis à jour pour " + invoiceNumber);
+                        } else {
+                            Log.e(TAG, "Échec mise à jour statut SMS: " + response.toString());
+                        }
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Erreur parsing réponse", e);
+                    }
+                },
+                error -> {
+                    Log.e(TAG, "Erreur réseau mise à jour statut SMS", error);
+                    // Optional: Implement retry mechanism
+                }
+        );
+
+        // Set a longer timeout and retry policy
+        jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(
+                20000,  // 20 seconds timeout
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        queue.add(jsonObjectRequest);
+    }
+
+    public boolean verifierConditionsEnvoi() {
         // Vérification de la connectivité réseau et du mode avion
         ConnectivityManager connectivityManager =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -333,5 +309,14 @@ public class MainActivity extends AppCompatActivity {
 
         registerReceiver(smsSentReceiver, new IntentFilter("SMS_SENT"));
         registerReceiver(smsDeliveredReceiver, new IntentFilter("SMS_DELIVERED"));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Arrêter les mises à jour périodiques
+        if (periodicUpdateHandler != null) {
+            periodicUpdateHandler.removeCallbacksAndMessages(null);
+        }
     }
 }
