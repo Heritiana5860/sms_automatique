@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.sms_lemadio_sender"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -42,4 +42,8 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+    val workVersion = "2.8.1"
+    implementation("androidx.work:work-runtime:$workVersion")
+
 }
