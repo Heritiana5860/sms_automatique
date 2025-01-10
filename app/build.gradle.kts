@@ -46,4 +46,6 @@ dependencies {
     val workVersion = "2.8.1"
     implementation("androidx.work:work-runtime:$workVersion")
 
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
 }
