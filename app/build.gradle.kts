@@ -44,8 +44,20 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
 
     val workVersion = "2.8.1"
-    implementation("androidx.work:work-runtime:$workVersion")
+    implementation(libs.work.runtime)
 
-    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    //PieCart
+    implementation(libs.mpandroidchart)
+
+    //for login design
+    implementation(libs.material.v1110)
+
+    // retrofit
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.gson)
+
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
 
 }

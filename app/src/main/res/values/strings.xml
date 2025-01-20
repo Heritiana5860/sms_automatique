@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">sms_lemadio_sender</string>
+    <string name="mot_de_passe">Mot de passe</string>
+    <string name="nom_utilisateur">Nom utilisateur</string>
+    <string name="selectionner_une_zone">Selectionner une zone</string>
+    <string name="se_connecter">Se connecter</string>
+    <string name="mot_de_passe_oubli">Mot de passe oublié?</string>
+    <string name="vous_n_avez_pas_encore_un_compte">Vous n\'avez pas encore un compte?</string>
+    <string name="cr_er">Créer</string>
+    <string name="connectez_vous">Connectez vous!</string>
+    <string name="sms_en_attente_0">SMS en attente: 0</string>
+    <string name="deconnecter">Deconnecter</string>
+    <string name="sms_envoy_s_0">SMS envoyés: 0</string>
+    <string name="total_sms_0">Total SMS: 0</string>
+    <string name="zone">Zone:</string>
 </resources>
