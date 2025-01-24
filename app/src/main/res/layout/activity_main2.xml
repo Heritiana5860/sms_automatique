@@ -7,11 +7,15 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    tools:context=".MainActivity2">
+    tools:context=".MainActivity2"
+    android:background="@color/white">
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        app:cardElevation="4dp"
+        app:cardCornerRadius="8dp"
+        android:layout_marginBottom="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -24,21 +28,35 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
-                android:text="@string/total_sms_0" />
+                android:gravity="center"
+                android:text="@string/total_sms_0"
+                android:textColor="@color/black"
+                android:drawablePadding="8dp"
+                app:drawableStartCompat="@drawable/ic_sms_total" />
 
             <TextView
                 android:id="@+id/sentSmsText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
-                android:text="@string/sms_envoy_s_0" />
+                android:gravity="center"
+                android:text="@string/sms_envoy_s_0"
+                android:textColor="@color/black"
+                android:drawablePadding="8dp"
+                android:layout_marginTop="8dp"
+                app:drawableStartCompat="@drawable/ic_sms_sent" />
 
             <TextView
                 android:id="@+id/pendingSmsText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
-                android:text="@string/sms_en_attente_0" />
+                android:gravity="center"
+                android:text="@string/sms_en_attente_0"
+                android:textColor="@color/black"
+                android:drawablePadding="8dp"
+                android:layout_marginTop="8dp"
+                app:drawableStartCompat="@drawable/ic_sms_pending" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -46,23 +64,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_margin="10dp"
-        >
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp">
 
         <TextView
             android:id="@+id/zone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:textSize="18sp"
-            android:text="@string/zone" />
-
+            android:text="@string/zone"
+            android:textColor="@color/black"
+            android:drawablePadding="8dp"
+            app:drawableStartCompat="@drawable/ic_zone" />
     </LinearLayout>
 
     <com.github.mikephil.charting.charts.PieChart
         android:id="@+id/pieChart"
         android:layout_width="match_parent"
         android:layout_height="300dp"
-        android:layout_margin="8dp" />
+        android:layout_margin="8dp"
+        android:layout_marginBottom="16dp"/>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnLogout"
@@ -70,6 +92,8 @@
         android:layout_height="wrap_content"
         android:text="@string/deconnecter"
         android:padding="16dp"
-        app:cornerRadius="8dp"/>
-
+        app:cornerRadius="8dp"
+        android:textColor="@color/white"
+        android:backgroundTint="@color/green"
+        android:layout_marginTop="16dp"/>
 </LinearLayout>

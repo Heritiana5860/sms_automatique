@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -33,6 +34,7 @@ public class LoginActivity extends AppCompatActivity {
     private MaterialButton btnLogin;
     String[] cities = {"Manakara", "Fianarantsoa", "Toliara", "Antananarivo"};
     String selectedRegion;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +47,7 @@ public class LoginActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.etPassword);
         citySpinner = findViewById(R.id.citySpinner);
         btnLogin = findViewById(R.id.btnLogin);
+        progressBar = findViewById(R.id.progressBar);
 
         // Setup city spinner
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
@@ -99,10 +102,9 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // Afficher un indicateur de chargement
-        ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Connexion en cours...");
-        progressDialog.show();
+        // Afficher le ProgressBar
+        progressBar.setVisibility(View.VISIBLE);
+        btnLogin.setEnabled(false);
 
         LoginRequest loginRequest = new LoginRequest(username, password);
         Call<LoginResponse> call = ApiClient.getInstance(this).getApiService().login(loginRequest);
@@ -110,7 +112,9 @@ public class LoginActivity extends AppCompatActivity {
         call.enqueue(new Callback<LoginResponse>() {
             @Override
             public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
-                progressDialog.dismiss();
+                // Masquer le ProgressBar
+                progressBar.setVisibility(View.GONE);
+                btnLogin.setEnabled(true);
                 Log.d("LOGIN_DEBUG", "Response code: " + response.code());
 
                 if (response.isSuccessful() && response.body() != null) {
@@ -131,7 +135,9 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<LoginResponse> call, Throwable t) {
-                progressDialog.dismiss();
+                // Masquer le ProgressBar
+                progressBar.setVisibility(View.GONE);
+                btnLogin.setEnabled(true);
                 Toast.makeText(LoginActivity.this,
                         "Erreur réseau : " + t.getMessage(),
                         Toast.LENGTH_LONG).show();
