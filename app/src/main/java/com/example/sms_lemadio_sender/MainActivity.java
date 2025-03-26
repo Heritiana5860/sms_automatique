@@ -66,9 +66,7 @@ public class MainActivity extends AppCompatActivity {
                     new String[]{android.Manifest.permission.SEND_SMS}, PERMISSION_REQUEST_SEND_SMS);
         } else {
 
-            // Start service
-            Intent serviceIntent = new Intent(this, SMSWorker.class);
-            startForegroundService(serviceIntent);
+
 
             // Verify battery optimisation
             if (!isIgnoringBatteryOptimizations()) {

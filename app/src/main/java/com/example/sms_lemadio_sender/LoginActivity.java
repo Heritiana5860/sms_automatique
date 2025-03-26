@@ -1,5 +1,7 @@
 package com.example.sms_lemadio_sender;
 
+import static android.content.ContentValues.TAG;
+
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -35,6 +37,7 @@ public class LoginActivity extends AppCompatActivity {
     String[] cities = {"Manakara", "Fianarantsoa", "Toliara", "Antananarivo"};
     String selectedRegion;
     private ProgressBar progressBar;
+    private static final String TAG = "region";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -159,6 +162,13 @@ public class LoginActivity extends AppCompatActivity {
         intent.putExtra("selectedRegion", selectedRegion);
         startActivity(intent);
         finish();
+
+
+        Log.w(TAG, "selectedRegion " + selectedRegion);
+
+        // Start service
+        Intent serviceIntent = new Intent(this, SMSWorker.class);
+        startForegroundService(serviceIntent);
     }
 
     //Session

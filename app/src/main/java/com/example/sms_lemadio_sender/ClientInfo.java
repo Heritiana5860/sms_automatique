@@ -7,5 +7,5 @@ public class ClientInfo {
     String stove;
     String consultation;
     boolean smsSent;
-    String region;
+    String salesSite;
 }

@@ -3,7 +3,6 @@ package com.example.sms_lemadio_sender;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -11,17 +10,11 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
-import android.net.NetworkInfo;
 import android.os.IBinder;
-import android.provider.Settings;
 import android.telephony.SmsManager;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.work.Worker;
-import androidx.work.WorkerParameters;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -39,7 +32,8 @@ import java.util.concurrent.Executors;
 
 public class SMSWorker extends Service {
 
-    private static final String TAG = "SMSService";
+    // private static final String TAG = "SMSService";
+    private static final String TAG = "regions";
     private volatile boolean isRunning = false;
     private ExecutorService executorService;
 
@@ -48,7 +42,6 @@ public class SMSWorker extends Service {
         super.onCreate();
         executorService = Executors.newSingleThreadExecutor();
     }
-
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -73,7 +66,8 @@ public class SMSWorker extends Service {
                         }
 
                         for (ClientInfo client : unsentClients) {
-                            if(zone.equals(client.region)) {
+
+                            if(zone.equals(client.salesSite)) {
                                 envoyerSMS(client);
                             }
                         }
@@ -155,9 +149,17 @@ public class SMSWorker extends Service {
                                 client.invoiceNumber = clientJson.getString("invoice_number");
                                 client.stove = clientJson.getString("stove");
                                 client.consultation = clientJson.getString("consultation_url");
-                                client.region = clientJson.getString("saleSite");
-                                unsentClients.add(client);
-                                Log.d("List", "Nom: "+client.name+"\nTel: "+client.phoneNumber+" smsSent: "+client.smsSent+" Region: "+client.region);
+
+                                // Use optString to provide a default value if saleSite is missing
+                                client.salesSite = clientJson.optString("sale__saleSite", "");
+
+                                // Only add client if region is not empty
+                                if (!client.salesSite.isEmpty()) {
+                                    unsentClients.add(client);
+                                    Log.d("List", "Nom: "+client.name+"\nTel: "+client.phoneNumber+" smsSent: "+client.smsSent+" Region: "+client.salesSite);
+                                } else {
+                                    Log.w(TAG, "Skipping client " + client.name + " due to missing region");
+                                }
                             }
                         }
                     }
@@ -183,7 +185,7 @@ public class SMSWorker extends Service {
                     client.name,
                     client.stove,
                     client.invoiceNumber,
-                    "http://ades.mg/" + client.consultation
+                    "http://102.16.254.214/" + client.consultation
             );
 
             SmsManager smsManager = SmsManager.getDefault();
@@ -246,9 +248,9 @@ public class SMSWorker extends Service {
     private static String formaterNumero(String numero) {
         numero = numero.replaceAll("\\s", "").replace("-", "");
 
-        if (numero.startsWith("34") || numero.startsWith("32") ||
-                numero.startsWith("33") || numero.startsWith("38") || numero.startsWith("37")) {
-            numero = "+261" + numero;
+        if (numero.startsWith("034") || numero.startsWith("032") ||
+                numero.startsWith("033") || numero.startsWith("038") || numero.startsWith("037")) {
+            numero = "+261" + numero.substring(1);
         }
 
         if (!numero.startsWith("+261")) {
@@ -266,7 +268,7 @@ public class SMSWorker extends Service {
     //Recuperer la région
     private String getRegionFromSession() {
         SharedPreferences sharedPreferences = getSharedPreferences("UserSession", MODE_PRIVATE);
-        return sharedPreferences.getString("selectedRegion", ""); // Retourne une chaîne vide si aucune région n'est trouvée
+        return sharedPreferences.getString("selectedRegion", "");
     }
 
 }
