@@ -34,7 +34,24 @@ public class LoginActivity extends AppCompatActivity {
     private AutoCompleteTextView citySpinner;
     private TextInputEditText etEmail, etPassword;
     private MaterialButton btnLogin;
-    String[] cities = {"Manakara", "Fianarantsoa", "Toliara", "Antananarivo"};
+    String[] cities = {
+            "Centre VERT EJEDA",
+            "Centre de production ANTANANARIVO",
+            "Centre de production FIANARANTSOA",
+            "Centre de vente ANTALAHA",
+            "Centre de vente ANTANANARIVO",
+            "Centre de vente ANTSIRABE",
+            "Centre de vente ANTSOHIHY",
+            "Centre de vente DIEGO",
+            "Centre de vente FIANARANTSOA",
+            "Centre de vente FORT DAUPHIN",
+            "Centre de vente MAJUNGA",
+            "Centre de vente MANAKARA",
+            "Centre de vente MORONDAVA",
+            "Centre de vente TAMATAVE",
+            "Centre de vente TULEAR",
+            "Direction Nationale & Centre de Production TULEAR",
+    };
     String selectedRegion;
     private ProgressBar progressBar;
     private static final String TAG = "region";

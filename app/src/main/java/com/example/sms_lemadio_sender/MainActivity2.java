@@ -161,7 +161,7 @@ public class MainActivity2 extends AppCompatActivity {
                 if (client.getBoolean("is_sms_sent")) {
                     sentSms++;
                 }
-                String stove = client.getString("stove");
+                String stove = client.getString("stove_numbers");
 
                 // Séparer le type et le numéro
                 String[] stoveParts = stove.split(" ");
@@ -240,7 +240,7 @@ public class MainActivity2 extends AppCompatActivity {
     //Recuperer la région
     private String getRegionFromSession() {
         SharedPreferences sharedPreferences = getSharedPreferences("UserSession", MODE_PRIVATE);
-        return sharedPreferences.getString("selectedRegion", ""); // Retourne une chaîne vide si aucune région n'est trouvée
+        return sharedPreferences.getString("selectedRegion", "");
     }
 
     //Se deconnecter

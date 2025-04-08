@@ -147,7 +147,7 @@ public class SMSWorker extends Service {
                                 client.name = clientJson.getString("client_name");
                                 client.phoneNumber = clientJson.getString("client_phone");
                                 client.invoiceNumber = clientJson.getString("invoice_number");
-                                client.stove = clientJson.getString("stove");
+                                client.stove = clientJson.getString("stove_numbers");
                                 client.consultation = clientJson.getString("consultation_url");
 
                                 // Use optString to provide a default value if saleSite is missing
@@ -209,7 +209,7 @@ public class SMSWorker extends Service {
             connection.setDoOutput(true);
 
             JSONObject jsonPayload = new JSONObject();
-            jsonPayload.put("stove", stove);
+            jsonPayload.put("stove_numbers", stove);
             jsonPayload.put("sms_sent", smsSent);
 
             try (OutputStream os = connection.getOutputStream()) {
