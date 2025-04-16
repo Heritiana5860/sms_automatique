@@ -8,4 +8,5 @@ public class ClientInfo {
     String consultation;
     boolean smsSent;
     String salesSite;
+    String saleSite;
 }

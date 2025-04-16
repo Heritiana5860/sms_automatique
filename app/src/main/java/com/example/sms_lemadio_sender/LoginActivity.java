@@ -2,6 +2,7 @@ package com.example.sms_lemadio_sender;
 
 import static android.content.ContentValues.TAG;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -9,10 +10,15 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -34,6 +40,7 @@ public class LoginActivity extends AppCompatActivity {
     private AutoCompleteTextView citySpinner;
     private TextInputEditText etEmail, etPassword;
     private MaterialButton btnLogin;
+    Button popupBtn;
     String[] cities = {
             "Centre VERT EJEDA",
             "Centre de production ANTANANARIVO",
@@ -68,6 +75,7 @@ public class LoginActivity extends AppCompatActivity {
         citySpinner = findViewById(R.id.citySpinner);
         btnLogin = findViewById(R.id.btnLogin);
         progressBar = findViewById(R.id.progressBar);
+        popupBtn = findViewById(R.id.popupBtn);
 
         // Setup city spinner
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
@@ -105,6 +113,35 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(v -> performLogin());
 
     }
+
+    public void popUpMenu(View v) {
+        // Créer un LayoutInflater pour gonfler la vue personnalisée
+        LayoutInflater inflater = getLayoutInflater();
+        View popupView = inflater.inflate(R.layout.popup, null);
+
+        EditText editTextPopup = popupView.findViewById(R.id.editTextPopup);
+        Button btnPopupSubmit = popupView.findViewById(R.id.btnPopupSubmit);
+
+        // Créer l'AlertDialog avec la vue personnalisée
+        AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
+        builder.setView(popupView);
+        AlertDialog dialog = builder.create();
+
+        // Gérer le clic sur le bouton "Valider"
+        btnPopupSubmit.setOnClickListener(view -> {
+            String text = editTextPopup.getText().toString().trim();
+            if (!text.isEmpty()) {
+                ApiUrl.setIp(text);
+                Toast.makeText(this, "Vous avez entré : " + text, Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            } else {
+                editTextPopup.setError("Veuillez remplir ce champ");
+            }
+        });
+
+        dialog.show();
+    }
+
 
     private void performLogin() {
         String username = etEmail.getText().toString().trim();

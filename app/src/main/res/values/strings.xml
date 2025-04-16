@@ -13,4 +13,6 @@
     <string name="sms_envoy_s_0">SMS envoyés: 0</string>
     <string name="total_sms_0">Total SMS: 0</string>
     <string name="zone">Zone:</string>
+    <string name="ip">Adresse Ip</string>
+    <string name="charger">Charger</string>
 </resources>

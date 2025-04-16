@@ -50,7 +50,7 @@ public class ApiClient {
 
         // Configuration de Retrofit
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(ApiUrl.SMS_USER_API_URL)
+                .baseUrl(ApiUrl.getSmsUserApiUrl())
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(client)
                 .build();

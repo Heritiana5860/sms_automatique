@@ -124,7 +124,7 @@ public class MainActivity2 extends AppCompatActivity {
     private void updateDashboard() {
         new Thread(() -> {
             try {
-                URL url = new URL(ApiUrl.API_URL);
+                URL url = new URL(ApiUrl.getApiUrl());
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
 

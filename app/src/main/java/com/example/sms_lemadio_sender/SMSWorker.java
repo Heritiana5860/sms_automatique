@@ -67,7 +67,7 @@ public class SMSWorker extends Service {
 
                         for (ClientInfo client : unsentClients) {
 
-                            if(zone.equals(client.salesSite)) {
+                            if(zone.equals(client.salesSite) || zone.equals(client.saleSite)) {
                                 envoyerSMS(client);
                             }
                         }
@@ -123,7 +123,7 @@ public class SMSWorker extends Service {
     private List<ClientInfo> recupererClientsNonTraites() {
         List<ClientInfo> unsentClients = new ArrayList<>();
         try {
-            URL url = new URL(ApiUrl.API_URL);
+            URL url = new URL(ApiUrl.getApiUrl());
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(10000);
@@ -149,14 +149,13 @@ public class SMSWorker extends Service {
                                 client.invoiceNumber = clientJson.getString("invoice_number");
                                 client.stove = clientJson.getString("stove_numbers");
                                 client.consultation = clientJson.getString("consultation_url");
-
-                                // Use optString to provide a default value if saleSite is missing
                                 client.salesSite = clientJson.optString("sale__saleSite", "");
+                                client.saleSite = clientJson.optString("beneficiary__saleSite", "");
 
                                 // Only add client if region is not empty
-                                if (!client.salesSite.isEmpty()) {
+                                if (!client.salesSite.isEmpty() || !client.saleSite.isEmpty()) {
                                     unsentClients.add(client);
-                                    Log.d("List", "Nom: "+client.name+"\nTel: "+client.phoneNumber+" smsSent: "+client.smsSent+" Region: "+client.salesSite);
+                                    Log.d("List", "Nom: "+client.name+"\nTel: "+client.phoneNumber+" smsSent: "+client.smsSent+" Region: "+client.salesSite + "/" + client.saleSite);
                                 } else {
                                     Log.w(TAG, "Skipping client " + client.name + " due to missing region");
                                 }
@@ -185,7 +184,7 @@ public class SMSWorker extends Service {
                     client.name,
                     client.stove,
                     client.invoiceNumber,
-                    "http://102.16.254.214/" + client.consultation
+                    "http://10.85.5.57:5173/" + client.consultation
             );
 
             SmsManager smsManager = SmsManager.getDefault();
@@ -202,7 +201,7 @@ public class SMSWorker extends Service {
 
     private void mettreAJourStatutSMS(String stove, boolean smsSent) {
         try {
-            URL url = new URL(ApiUrl.API_URL);
+            URL url = new URL(ApiUrl.getApiUrl());
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json");
@@ -251,6 +250,8 @@ public class SMSWorker extends Service {
         if (numero.startsWith("034") || numero.startsWith("032") ||
                 numero.startsWith("033") || numero.startsWith("038") || numero.startsWith("037")) {
             numero = "+261" + numero.substring(1);
+        } else {
+            Log.e(TAG, "Numero invalide!");
         }
 
         if (!numero.startsWith("+261")) {

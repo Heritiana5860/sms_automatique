@@ -11,6 +11,22 @@
     android:padding="16dp"
     tools:context=".LoginActivity">
 
+    <!-- App Icon/Button -->
+    <Button
+        android:id="@+id/popupBtn"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="end"
+        android:layout_margin="4dp"
+        android:background="#FFFFFF"
+        android:drawableEnd="@drawable/more_vert"
+        android:elevation="0dp"
+        android:onClick="popUpMenu"
+        android:padding="8dp"
+        android:stateListAnimator="@null"
+        android:text=""
+        tools:ignore="SpeakableTextPresentCheck" />
+
     <!-- App Logo/Icon -->
     <ImageView
         android:id="@+id/ivLogo"
