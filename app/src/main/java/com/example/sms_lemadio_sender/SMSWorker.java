@@ -1,5 +1,7 @@
 package com.example.sms_lemadio_sender;
 
+import static android.content.Intent.getIntent;
+
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -40,18 +42,20 @@ public class SMSWorker extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.d(TAG, "IP : " + ApiUrl.getIp());
         executorService = Executors.newSingleThreadExecutor();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         isRunning = true;
-        executorService.submit(this::processSmsTasks);
+        executorService.submit(() -> processSmsTasks(intent));
         startForeground(1, createNotification());
+        Log.d(TAG, "IP : " + ApiUrl.getIp());
         return START_STICKY;
     }
 
-    private void processSmsTasks() {
+    private void processSmsTasks(Intent intent) {
         while (isRunning) {
             try {
                 if (isInternetAvailable()) {
@@ -68,7 +72,7 @@ public class SMSWorker extends Service {
                         for (ClientInfo client : unsentClients) {
 
                             if(zone.equals(client.salesSite) || zone.equals(client.saleSite)) {
-                                envoyerSMS(client);
+                                envoyerSMS(client, intent);
                             }
                         }
                     } else {
@@ -155,7 +159,8 @@ public class SMSWorker extends Service {
                                 // Only add client if region is not empty
                                 if (!client.salesSite.isEmpty() || !client.saleSite.isEmpty()) {
                                     unsentClients.add(client);
-                                    Log.d("List", "Nom: "+client.name+"\nTel: "+client.phoneNumber+" smsSent: "+client.smsSent+" Region: "+client.salesSite + "/" + client.saleSite);
+                                    Log.d(TAG, "Nom: "+client.name+"\nTel: "+client.phoneNumber+" smsSent: "+client.smsSent+" Region: "+client.salesSite + "/" + client.saleSite);
+                                    Log.d(TAG, "IP : " + ApiUrl.getIp());
                                 } else {
                                     Log.w(TAG, "Skipping client " + client.name + " due to missing region");
                                 }
@@ -170,7 +175,7 @@ public class SMSWorker extends Service {
         return unsentClients;
     }
 
-    private void envoyerSMS(ClientInfo client) {
+    private void envoyerSMS(ClientInfo client, Intent intent) {
         try {
             String numero = formaterNumero(client.phoneNumber);
             if (!validerNumeroMadagascar(numero)) {
@@ -184,7 +189,7 @@ public class SMSWorker extends Service {
                     client.name,
                     client.stove,
                     client.invoiceNumber,
-                    "http://10.85.5.57:5173/" + client.consultation
+                    "http://"+ApiUrl.getIp()+":5173/" + client.consultation
             );
 
             SmsManager smsManager = SmsManager.getDefault();
@@ -192,6 +197,7 @@ public class SMSWorker extends Service {
             smsManager.sendMultipartTextMessage(numero, null, parts, null, null);
 
             Log.d(TAG, "SMS envoyé à : " + numero);
+            Log.d(TAG, "IP : " + ApiUrl.getIp());
             mettreAJourStatutSMS(client.stove, true);
         } catch (Exception e) {
             Log.e(TAG, "Erreur lors de l'envoi du SMS", e);
@@ -209,7 +215,7 @@ public class SMSWorker extends Service {
 
             JSONObject jsonPayload = new JSONObject();
             jsonPayload.put("stove_numbers", stove);
-            jsonPayload.put("sms_sent", smsSent);
+            jsonPayload.put("is_sms_sent", smsSent);
 
             try (OutputStream os = connection.getOutputStream()) {
                 byte[] input = jsonPayload.toString().getBytes(StandardCharsets.UTF_8);

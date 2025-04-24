@@ -25,4 +25,8 @@ public class ApiUrl {
     public static void setIp(String newIp) {
         ip = newIp;
     }
+
+    public static String getIp() {
+        return ip;
+    }
 }

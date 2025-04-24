@@ -130,8 +130,10 @@ public class LoginActivity extends AppCompatActivity {
         // Gérer le clic sur le bouton "Valider"
         btnPopupSubmit.setOnClickListener(view -> {
             String text = editTextPopup.getText().toString().trim();
+
             if (!text.isEmpty()) {
                 ApiUrl.setIp(text);
+
                 Toast.makeText(this, "Vous avez entré : " + text, Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             } else {
